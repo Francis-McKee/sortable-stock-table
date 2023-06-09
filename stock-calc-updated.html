@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 <!DOCTYPE html>
 <html>
 <head>
@@ -180,3 +181,187 @@
     </script>
 </body>
 </html>
+=======
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Stock Information</title>
+    <style>
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        th, td {
+            padding: 8px;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
+        }
+
+        #sortContainer {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        #notes {
+            text-align: center;
+        }
+        
+    </style>
+</head>
+<body>
+    <h1>Stock Information</h1>
+
+    <form id="stockForm">
+        <label for="symbol">Stock Symbol:</label>
+        <input type="text" id="symbol" required><br>
+
+        <label for="price">Current Price per Share:</label>
+        <input type="number" id="price" step="0.01" required><br>
+
+        <label for="apy">Current Annual Yield Percentage:</label>
+        <input type="number" id="apy" step="0.01" required><br>
+
+        <label for="eps">Current EPS:</label>
+        <input type="number" id="eps" step="0.01" required><br>
+
+        <label for="beta">Current Beta:</label>
+        <input type="number" id="beta" step="0.01" required><br>
+
+        <button type="submit">Search</button>
+    </form>
+
+    <div id="sortContainer">
+        <label for="sortCriteria">Sort By:</label>
+        <select id="sortCriteria">
+            <option value="price">Price</option>
+            <option value="apy">Annual Yield Percentage</option>
+            <option value="eps">EPS</option>
+            <option value="beta">Beta</option>
+            <option value="dividend_quotient">Dividend Quotient</option>
+            <option value="pe_ratio">Price Earnings Ratio</option>
+        </select>
+    </div>
+
+    <div id="results">
+        <table id="stockTable">
+            <thead>
+                <tr>
+                    <th>Stock Symbol</th>
+                    <th>Price per Share</th>
+                    <th>Annual Yield Percentage</th>
+                    <th>EPS</th>
+                    <th>Beta</th>
+                    <th>Dividend Quotient</th>
+                    <th>Price Earnings Ratio</th>
+                </tr>
+            </thead>
+            <tbody></tbody>
+        </table>
+    </div>
+
+    <br>
+    <div id="notes">
+        <p>Stocks with a beta less than 1 are generally considered less risky than stocks with a beta greater than 1.</p>
+        <p>Stocks with a higher dividend quotient mean you are getting a higher annual dividend yield while spending less to purchase shares of the stock.</p>
+        <p>A high P/E ratio could mean that a stock is overvalued, or that investors are expecting high growth rates in the future.</p>
+    </div>
+
+    <script>
+        var stockDict = {};
+
+        function displayStockInfo() {
+            var tableBody = document.querySelector("#stockTable tbody");
+            tableBody.innerHTML = ""; // removes all rows and content inside the table body
+
+            var sortedStocks = Object.entries(stockDict).sort((a, b) => {
+                var stockA = a[1];
+                var stockB = b[1];
+
+                if (sortCriteria === "price") {
+                    return stockA.price - stockB.price; // lowest to highest sort
+                } else if (sortCriteria === "apy") {
+                    return stockB.apy - stockA.apy; // highest to lowest
+                } else if (sortCriteria === "eps") {
+                    return stockB.eps - stockA.eps; // highest to lowest
+                } else if (sortCriteria === "beta") {
+                    return stockA.beta - stockB.beta; // lowest to highest
+                } else if (sortCriteria === "dividend_quotient") {
+                    return stockB.dividend_quotient - stockA.dividend_quotient; // highest to lowest
+                } else if (sortCriteria === "pe_ratio") {
+                    return stockA.pe_ratio - stockB.pe_ratio; // lowest to highest
+                }
+            });
+
+            sortedStocks.forEach(([stockSymbol, stock]) => {
+                var row = document.createElement("tr");
+                row.innerHTML = `
+                    <td>${stockSymbol}</td>
+                    <td>${stock.price}</td>
+                    <td>${stock.apy}</td>
+                    <td>${stock.eps}</td>
+                    <td>${stock.beta}</td>
+                    <td>${stock.dividend_quotient.toFixed(3)}</td>
+                    <td>${stock.pe_ratio.toFixed(3)}</td>
+                `;
+
+                tableBody.appendChild(row);
+            });
+        }
+
+        document.getElementById("stockForm").addEventListener("submit", function(event) {
+            event.preventDefault();
+
+            var symbolInput = document.getElementById("symbol");
+            var priceInput = document.getElementById("price");
+            var apyInput = document.getElementById("apy");
+            var epsInput = document.getElementById("eps");
+            var betaInput = document.getElementById("beta");
+
+            var symbol = symbolInput.value;
+            var price = parseFloat(priceInput.value);
+            var apy = parseFloat(apyInput.value);
+            var eps = parseFloat(epsInput.value);
+            var beta = parseFloat(betaInput.value);
+
+            // Validate symbol input to ensure that no numbers are entered
+            var symbolRegex = /^[a-zA-Z/.]+$/;
+            if (!symbolRegex.test(symbol)) {
+                alert("Invalid symbol input. Please enter letters only.");
+                return;
+            }
+
+            var dividendQuotient = apy / price;
+            var peRatio = (eps < 0) ? 0 : price / eps;
+
+            symbolInput.value = "";
+            priceInput.value = "";
+            apyInput.value = "";
+            epsInput.value = "";
+            betaInput.value = "";
+
+            if (stockDict.hasOwnProperty(symbol)) {
+                alert("This stock has already been added.");
+                return;
+            }
+
+            stockDict[symbol] = {
+                price: price,
+                apy: apy,
+                eps: eps,
+                beta: beta,
+                dividend_quotient: dividendQuotient,
+                pe_ratio: peRatio
+            };
+
+            displayStockInfo();
+        });
+
+        document.getElementById("sortCriteria").addEventListener("change", function(event) {
+            sortCriteria = event.target.value;
+            displayStockInfo();
+        });
+    </script>
+</body>
+</html>
+>>>>>>> 9c50462d8e01a388c1d974d18d7af12cdb562f80
