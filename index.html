@@ -148,7 +148,7 @@
             }
 
             var dividendQuotient = apy / price;
-            var peRatio = (eps < 0) ? 0 : price / eps;
+            var peRatio = (eps <= 0) ? 0 : price / eps; // if eps <= 0 : then peRatio = 0 else peRatio = price/eps
 
             symbolInput.value = "";
             priceInput.value = "";
