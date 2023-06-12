@@ -61,8 +61,8 @@
 
     <form id="stockForm">
         <div class="form-group">
-            <label for="symbol">Stock Symbol:</label>
-            <input type="text" id="symbol" required><br>
+            <label for="symbol">Stock Ticker:</label>
+            <input type="text" id="ticker" maxlength="5" required><br>
         </div>
         <div class="form-group">
             <label for="price">Price per Share:</label>
@@ -78,7 +78,7 @@
         </div>
         <div class="form-group">
             <label for="beta">Beta:</label>
-            <input type="number" id="beta" step="0.01" required><br>
+            <input type="number" id="beta" step="0.01" optional><br>
         </div>
 
         <button type="submit">Submit</button>
@@ -103,7 +103,7 @@
             <thead>
                 <tr>
                     <th></th>
-                    <th>Stock Symbol</th>
+                    <th>Stock Ticker</th>
                     <th>Price per Share</th>
                     <th>Annual Yield Percentage</th>
                     <th>EPS</th>
@@ -141,6 +141,8 @@
                 } else if (sortCriteria === "eps") {
                     return stockB.eps - stockA.eps; // highest to lowest
                 } else if (sortCriteria === "beta") {
+                    if (isNaN(stockA.beta)) return 1;
+                    if (isNaN(stockB.beta)) return -1; // move to bottom if no beta
                     return stockA.beta - stockB.beta; // lowest to highest
                 } else if (sortCriteria === "dividend_quotient") {
                     return stockB.dividend_quotient - stockA.dividend_quotient; // highest to lowest
@@ -149,17 +151,17 @@
                 }
             });
 
-            sortedStocks.forEach(([stockSymbol, stock]) => {
+            sortedStocks.forEach(([stockTicker, stock]) => {
                 var row = document.createElement("tr");
                 row.innerHTML = `
                     <td>
-                        <button class="delete-button" onclick="deleteStock('${stockSymbol}')">Delete</button>
+                        <button class="delete-button" onclick="deleteStock('${stockTicker}')">Delete</button>
                     </td>
-                    <td>${stockSymbol}</td>
+                    <td>${stockTicker.toUpperCase()}</td>
                     <td>${stock.price}</td>
                     <td>${stock.apy}</td>
                     <td>${stock.eps}</td>
-                    <td>${stock.beta}</td>
+                    <td>${stock.beta !== undefined && !isNaN(stock.beta) ? stock.beta : '-----'}</td>
                     <td>${stock.dividend_quotient.toFixed(3)}</td>
                     <td>${stock.pe_ratio.toFixed(3)}</td>
                 `;
@@ -168,50 +170,50 @@
             });
         }
 
-        function deleteStock(symbol) {
-            if (stockDict.hasOwnProperty(symbol)) {
-                delete stockDict[symbol];
+        function deleteStock(ticker) { // if a duplicate ticker is entered the row is deleted
+            if (stockDict.hasOwnProperty(ticker)) {
+                delete stockDict[ticker];
                 displayStockInfo();
             }
         }
 
-        document.getElementById("stockForm").addEventListener("submit", function(event) { // listens to the submit even of the form
+        document.getElementById("stockForm").addEventListener("submit", function(event) { // listens to the submit event of the form
             event.preventDefault();
 
-            var symbolInput = document.getElementById("symbol");
+            var tickerInput = document.getElementById("ticker");
             var priceInput = document.getElementById("price");
             var apyInput = document.getElementById("apy");
             var epsInput = document.getElementById("eps");
             var betaInput = document.getElementById("beta");
 
-            var symbol = symbolInput.value;
+            var ticker = tickerInput.value.toUpperCase();
             var price = parseFloat(priceInput.value);
             var apy = parseFloat(apyInput.value);
             var eps = parseFloat(epsInput.value);
             var beta = parseFloat(betaInput.value);
 
-            // Validate symbol input to ensure that no numbers are entered
-            var symbolRegex = /^[a-zA-Z/.]+$/;
-            if (!symbolRegex.test(symbol)) { // if a symbol such as a number is entered then the alert appears
-                alert("Invalid symbol input. Please enter letters only.");
+            // Validate symbol input to ensure that no numbers are entered - only letters, forward slash, period, and colon
+            var tickerRegex = /^[a-zA-Z/.:]+$/;
+            if (!tickerRegex.test(ticker)) { // if a symbol such as a number is entered then the alert appears
+                alert("Invalid ticker input. Please enter letters only.");
                 return;
             }
 
             var dividendQuotient = apy / price;
             var peRatio = (eps <= 0) ? 0 : price / eps; // if eps <= 0 : then peRatio = 0 else peRatio = price/eps
 
-            symbolInput.value = "";
+            tickerInput.value = "";
             priceInput.value = "";
             apyInput.value = "";
             epsInput.value = "";
             betaInput.value = "";
 
-            if (stockDict.hasOwnProperty(symbol)) {
+            if (stockDict.hasOwnProperty(ticker)) {
                 alert("This stock has already been added.");
                 return;
             }
 
-            stockDict[symbol] = {
+            stockDict[ticker] = {
                 price: price,
                 apy: apy,
                 eps: eps,
