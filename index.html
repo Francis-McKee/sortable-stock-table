@@ -17,6 +17,10 @@
             margin-left: 10px;
         }
 
+        .form-group div {
+            margin-left: 205px;
+        }
+
         table {
             width: 100%;
             border-collapse: collapse;
@@ -59,7 +63,7 @@
 <body>
     <h1>Stock Information</h1>
 
-    <form id="stockForm">
+    <form id="stockForm"> <!-- stock input form -->
         <div class="form-group">
             <label for="symbol">Stock Ticker:</label>
             <input type="text" id="ticker" maxlength="5" required><br>
@@ -69,9 +73,27 @@
             <input type="number" id="price" step="0.01" required><br>
         </div>
         <div class="form-group">
-            <label for="apy">Annual Yield Percentage:</label>
-            <input type="number" id="apy" step="0.01" required><br>
+            <label for="apy">Yield Percentage (%):</label>
+            <input type="number" id="yield" step="0.01" required><br>
         </div>
+        <div class="form-group">
+            <label for="payout-frequency">Payout Frequency:</label>
+
+            <div>
+                <input type="radio" id="weekly" name="payout" value="weekly" required>
+                <label for="weekly">Weekly</label>
+            </div>
+            
+            <div>
+                <input type="radio" id="monthly" name="payout" value="monthly" required>
+                <label for="monthly">Monthly</label>
+            </div>
+
+            <div>
+                <input type="radio" id="quarterly" name="payout" value="quarterly" required>
+                <label for="quarterly">Quarterly</label>
+            </div>
+        </div>        
         <div class="form-group">
             <label for="eps">EPS:</label>
             <input type="number" id="eps" step="0.01" required><br>
@@ -86,11 +108,11 @@
 
     <br>
 
-    <div id="sortContainer">
+    <div id="sortContainer"> <!-- options to sort table -->
         <label for="sortCriteria">Sort By:</label>
         <select id="sortCriteria">
             <option value="price">Price</option>
-            <option value="apy">Annual Yield Percentage</option>
+            <option value="yield">Yield Percentage</option>
             <option value="eps">EPS</option>
             <option value="beta">Beta</option>
             <option value="dividend_quotient">Dividend Quotient</option>
@@ -102,13 +124,14 @@
         <table id="stockTable">
             <thead>
                 <tr>
-                    <th></th>
+                    <th></th> <!-- table headers for our stock table -->
                     <th>Stock Ticker</th>
                     <th>Price per Share</th>
-                    <th>Annual Yield Percentage</th>
+                    <th>Yield Percentage</th>
+                    <th>Payout Frequency</th>
                     <th>EPS</th>
                     <th>Beta</th>
-                    <th>Dividend Quotient</th>
+                    <th>Annual Dividend Quotient</th>
                     <th>Price Earnings Ratio</th>
                 </tr>
             </thead>
@@ -136,8 +159,8 @@
 
                 if (sortCriteria === "price") {
                     return stockA.price - stockB.price; // lowest to highest sort
-                } else if (sortCriteria === "apy") {
-                    return stockB.apy - stockA.apy; // highest to lowest
+                } else if (sortCriteria === "yield") {
+                    return stockB.yield - stockA.yield; // highest to lowest
                 } else if (sortCriteria === "eps") {
                     return stockB.eps - stockA.eps; // highest to lowest
                 } else if (sortCriteria === "beta") {
@@ -159,7 +182,8 @@
                     </td>
                     <td>${stockTicker.toUpperCase()}</td>
                     <td>${stock.price}</td>
-                    <td>${stock.apy}</td>
+                    <td>${stock.yield}</td>
+                    <td>${stock.payout}</td>
                     <td>${stock.eps}</td>
                     <td>${stock.beta !== undefined && !isNaN(stock.beta) ? stock.beta : '-----'}</td>
                     <td>${stock.dividend_quotient.toFixed(3)}</td>
@@ -182,15 +206,31 @@
 
             var tickerInput = document.getElementById("ticker");
             var priceInput = document.getElementById("price");
-            var apyInput = document.getElementById("apy");
+            var yieldInput = document.getElementById("yield");
             var epsInput = document.getElementById("eps");
             var betaInput = document.getElementById("beta");
 
             var ticker = tickerInput.value.toUpperCase();
             var price = parseFloat(priceInput.value);
-            var apy = parseFloat(apyInput.value);
+            var yield = parseFloat(yieldInput.value);
             var eps = parseFloat(epsInput.value);
             var beta = parseFloat(betaInput.value);
+
+            var weeklyCheckbox = document.getElementById("weekly");
+            var monthlyCheckbox = document.getElementById("monthly");
+            var quarterlyCheckbox = document.getElementById("quarterly");
+
+            var payout = "";
+            if (weeklyCheckbox.checked) {
+                payout = "Weekly";
+                var payoutValue = 52; // 52 weeks in a year
+            } else if (monthlyCheckbox.checked) {
+                payout = "Monthly";
+                var payoutValue = 12; // 12 months in a year
+            } else if (quarterlyCheckbox.checked) {
+                payout = "Quarterly";
+                var payoutValue = 4; // 4 quarters in a year
+            }
 
             // Validate symbol input to ensure that no numbers are entered - only letters, forward slash, period, and colon
             var tickerRegex = /^[a-zA-Z/.:]+$/;
@@ -199,14 +239,18 @@
                 return;
             }
 
-            var dividendQuotient = apy / price;
+            var dividendQuotient = (yield / price) * payoutValue;
             var peRatio = (eps <= 0) ? 0 : price / eps; // if eps <= 0 : then peRatio = 0 else peRatio = price/eps
 
+            // clear leftover form input
             tickerInput.value = "";
             priceInput.value = "";
-            apyInput.value = "";
+            yieldInput.value = "";
             epsInput.value = "";
             betaInput.value = "";
+            weeklyCheckbox.checked = false;
+            monthlyCheckbox.checked = false;
+            quarterlyCheckbox.checked = false;
 
             if (stockDict.hasOwnProperty(ticker)) {
                 alert("This stock has already been added.");
@@ -215,7 +259,8 @@
 
             stockDict[ticker] = {
                 price: price,
-                apy: apy,
+                yield: yield,
+                payout: payout,
                 eps: eps,
                 beta: beta,
                 dividend_quotient: dividendQuotient,
