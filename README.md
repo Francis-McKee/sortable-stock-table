@@ -1,4 +1,4 @@
-# html-stock-calc
-A stock tracker written in HTML, JavaScript, and CSS
+# sortable-stock-table
+A sortable table created in HTML, JavaScript, and CSS.
 
-A clone of https://github.com/Francis-McKee/top-stock-calc (written in Python) made for use online. The program performs calculations based on user input to determine the top stock to purchase (with a focus for dividend investors).
+The program allows the user to input stock information through a form into a table and sort based on various stock metrics.
