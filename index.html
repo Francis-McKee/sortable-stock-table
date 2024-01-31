@@ -144,7 +144,7 @@
                     <th></th>
                     <th>Stock Ticker</th>
                     <th>Price per Share</th>
-                    <th>Yield Percentage</th>
+                    <th>Annual Yield Percentage</th>
                     <th>Payout Frequency</th>
                     <th>EPS</th>
                     <th>Beta</th>
@@ -260,16 +260,7 @@
                 return;
             }
 
-            var payoutValue = 0;
-            if (weeklyCheckbox.checked) {
-                payoutValue = 52;
-            } else if (monthlyCheckbox.checked) {
-                payoutValue = 12;
-            } else if (quarterlyCheckbox.checked) {
-                payoutValue = 4;
-            }
-
-            var dividendQuotient = (yield / price) * payoutValue;
+            var dividendQuotient = (yield / price);
             var peRatio = (eps <= 0) ? 0 : price / eps;
 
             tickerInput.value = "";
