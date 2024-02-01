@@ -287,7 +287,9 @@
                 pe_ratio: peRatio
             };
 
-            displayStockInfo();
+            displayStockInfo(); // display the updated stock information
+
+            this.reset(); // reset the form to clear input fields - prevents the bug where page elements are removed upon form submission
         });
 
         document.getElementById("sortCriteria").addEventListener("change", function(event) {
