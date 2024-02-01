@@ -115,7 +115,7 @@
             <label for="beta">Beta:</label>
             <input type="number" id="beta" step="0.01" optional><br>
         </div>
-        <button type="submit">Submit</button>
+        <button type="button" onclick="submitForm()">Submit</button>
     </form>
 
     <br>
@@ -226,8 +226,7 @@
             }
         }
 
-        document.getElementById("stockForm").addEventListener("submit", function(event) {
-            event.preventDefault();
+        function submitForm() {
 
             var tickerInput = document.getElementById("ticker");
             var priceInput = document.getElementById("price");
@@ -289,8 +288,8 @@
 
             displayStockInfo(); // display the updated stock information
 
-            this.reset(); // reset the form to clear input fields - prevents the bug where page elements are removed upon form submission
-        });
+            document.getElementById("stockForm").reset(); // reset the form to clear input fields - prevents the bug where page elements are removed upon form submission
+        };
 
         document.getElementById("sortCriteria").addEventListener("change", function(event) {
             sortCriteria = event.target.value;
