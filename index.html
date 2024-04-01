@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Stock Information</title>
+    <title>Stock Margin Calculator</title>
     <style>
         body {
             display: flex;
@@ -11,6 +11,14 @@
             align-items: center;
             min-height: 100vh; /* ensure a min height so content doesn't push up */
             flex-direction: column;
+        }
+
+        h2 {
+            text-align: center;
+        }
+
+        p {
+            text-align: center;
         }
 
         .form-group {
@@ -26,311 +34,128 @@
             margin-left: 10px;
         }
 
-        .form-group div {
-            margin-left: 205px;
-        }
-
-        .required {
-            color: red;
-            margin-left: 1px; /* Add some space between the label and asterisk */
-        }
-
-
-        table {
-            width: 100%;
-            border-collapse: collapse;
-        }
-
-        th, td {
-            padding: 8px;
-            text-align: left;
-            border-bottom: 1px solid #ddd;
-        }
-
-        #sortContainer {
-            text-align: center;
-            margin-bottom: 20px;
-        }
-
-        #notes {
-            text-align: center;
-        }
-        
-        .delete-button, .clear-data-button {
-            background-color: #ffffff;
-            color: #f44336;
-            border: 1px solid #f44336;
-            padding: 6px 12px;
-            text-align: center;
-            text-decoration: none;
-            display: inline-block;
-            cursor: pointer;
-            transition: background-color 0.3s ease;
-            margin-top: 10px;
-        }
-
-        .delete-button:hover, .clear-data-button:hover {
-            background-color: #f44336;
-            color: #ffffff;
+        /* Hide the dividendForm initially */
+        #dividendForm {
+            display: none;
         }
     </style>
 </head>
 <body>
-    <h1>Stock Sorter</h1>
+    <h1>Stock Margin Calculator</h1>
 
-    <form id="stockForm" onsubmit="submitForm(event);">
-
+    <form id="marginForm" onsubmit="calculateMargin(event);">
         <div class="form-group">
-            <label for="ticker">Stock Ticker: <span class="required">*</span></label>
-            <input type="text" id="ticker" maxlength="5" required><br>
+            <label for="dividendsPerMonth">Dividends per Month ($):</label>
+            <input type="number" id="dividendsPerMonth" step="0.01" required>
         </div>
         <div class="form-group">
-            <label for="price">Price per Share: <span class="required">*</span></label>
-            <input type="number" id="price" step="0.01" required><br>
+            <label for="interestRate">Interest Rate (% per year):</label>
+            <input type="number" id="interestRate" step="any" required>
         </div>
-        <div class="form-group">
-            <label for="yield">Yield Percentage (%): <span class="required">*</span></label>
-            <input type="number" id="yield" step="0.01" required><br>
-        </div>
-        <div class="form-group">
-            <label>Payout Frequency: <span class="required">*</span></label>
-            <div>
-                <input type="radio" id="weekly" name="payout" value="weekly" required>
-                <label for="weekly">Weekly</label>
-            </div>
-            <div>
-                <input type="radio" id="monthly" name="payout" value="monthly" required>
-                <label for="monthly">Monthly</label>
-            </div>
-            <div>
-                <input type="radio" id="quarterly" name="payout" value="quarterly" required>
-                <label for="quarterly">Quarterly</label>
-            </div>
-        </div>
-        <div class="form-group">
-            <label for="eps">EPS:</label>
-            <input type="number" id="eps" step="0.01" optional><br>
-        </div>
-        <div class="form-group">
-            <label for="beta">Beta:</label>
-            <input type="number" id="beta" step="0.01" optional><br>
-        </div>
-        <button type="submit">Submit</button>
+        <button type="submit"> Calculate Margin </button>
     </form>
 
-    <br>
-    <br>
+    <div id="loanAmountDisplay"></div>
+    <div id="interestFormDisplay"></div>
 
-    <div id="sortContainer">
-        <label for="sortCriteria">Sort By:</label>
-        <select id="sortCriteria">
-            <option value="price">Price</option>
-            <option value="yield">Yield Percentage</option>
-            <option value="eps">EPS</option>
-            <option value="beta">Beta</option>
-            <option value="dividend_quotient">Dividend Quotient</option>
-            <option value="pe_ratio">Price Earnings Ratio</option>
-        </select>
-    </div>
+    <div id="yearlyInterestDisplay"></div>
+    <div id="monthlyInterestDisplay"></div>
+    <div id="dailyInterestDisplay"></div>
 
-    <div>
-        <button onclick="exportAsJSON()">Export as JSON</button>
-        <button onclick="exportAsCSV()">Export as CSV</button>
-    </div>
-    <div id="results">
-        <table id="stockTable">
-            <thead>
-                <tr>
-                    <th></th>
-                    <th>Stock Ticker</th>
-                    <th>Price per Share</th>
-                    <th>Annual Yield Percentage</th>
-                    <th>Payout Frequency</th>
-                    <th>EPS</th>
-                    <th>Beta</th>
-                    <th>Annual Dividend Quotient</th>
-                    <th>Price Earnings Ratio</th>
-                </tr>
-            </thead>
-            <tbody></tbody>
-        </table>
-    </div>
+    <hr>
 
-    <br>
+    <form id="dividendForm" onsubmit="calculateDividends(event);">
+        <div class="form-group">
+            <label for="price"> Stock Price ($): </label>
+            <input type="number" id="price" step="0.01" required>
+        </div>
+        <div class="form-group">
+            <label for="apy"> Annual Percentage Yield (%): </label>
+            <input type="number" id="apy" step="0.01" required>
+        </div>
+        <button type="submit"> Calculate Dividends </button>
+    </form>
 
-    <div id="notes">
-        <p>Stocks with a beta less than 1 are generally considered less risky than stocks with a beta greater than 1.</p>
-        <p>Stocks with a higher dividend quotient mean you are getting a higher annual dividend yield while spending less to purchase shares of the stock.</p>
-        <p>A high P/E ratio could mean that a stock is overvalued, or that investors are expecting high growth rates in the future.</p>
-    </div>
+    <div id="annualDividendsDisplay"></div>
+    <div id="monthlyDividendsDisplay"></div>
 
-    <button id="clearDataButton" class="clear-data-button" onclick="confirmAndClearData()">Clear Table Data</button>
+    <div id="paybackTimeDisplay"></div>
 
     <script>
-        var stockDict = {};
-        var sortCriteria = "price";
-
-        function displayStockInfo() {
-            var tableBody = document.querySelector("#stockTable tbody");
-            tableBody.innerHTML = "";
-
-            var sortedStocks = Object.entries(stockDict).sort((a, b) => {
-                var stockA = a[1];
-                var stockB = b[1];
-
-                if (sortCriteria === "price") {
-                    return stockA.price - stockB.price;
-                } else if (sortCriteria === "yield") {
-                    return stockB.yield - stockA.yield;
-                } else if (sortCriteria === "eps") {
-                    if (isNaN(stockB.eps)) return 1;
-                    if (isNaN(stockA.eps)) return -1;
-                    return stockB.eps - stockA.eps;
-                } else if (sortCriteria === "beta") {
-                    if (isNaN(stockA.beta)) return 1;
-                    if (isNaN(stockB.beta)) return -1;
-                    return stockA.beta - stockB.beta;
-                } else if (sortCriteria === "dividend_quotient") {
-                    return stockB.dividend_quotient - stockA.dividend_quotient;
-                } else if (sortCriteria === "pe_ratio") {
-                    if (isNaN(stockA.pe_ratio)) return 1;
-                    if (isNaN(stockB.pe_ratio)) return -1; 
-                    return stockA.pe_ratio - stockB.pe_ratio;
-                }
-            });
-
-            sortedStocks.forEach(([stockTicker, stock]) => {
-                var row = document.createElement("tr");
-                row.innerHTML = `
-                    <td>
-                        <button class="delete-button" onclick="deleteStock('${stockTicker}')">Delete</button>
-                    </td>
-                    <td>${stockTicker.toUpperCase()}</td>
-                    <td>${stock.price}</td>
-                    <td>${stock.yield}</td>
-                    <td>${stock.payout}</td>
-                    <td>${stock.eps !== undefined && !isNaN(stock.eps) ? stock.eps : '-----'}</td>
-                    <td>${stock.beta !== undefined && !isNaN(stock.beta) ? stock.beta : '-----'}</td>
-                    <td>${stock.dividend_quotient.toFixed(3)}</td>
-                    <td>${stock.pe_ratio !== undefined && !isNaN(stock.pe_ratio) ? stock.pe_ratio.toFixed(3) : '-----'}</td>
-                `;
-
-                tableBody.appendChild(row);
-            });
-        }
-
-        function deleteStock(ticker) {
-            if (stockDict.hasOwnProperty(ticker)) {
-                delete stockDict[ticker];
-                displayStockInfo();
-            }
-        }
-
-        function submitForm(event) {
-
+        function calculateMargin(event) {
             event.preventDefault();
 
-            var tickerInput = document.getElementById("ticker");
-            var priceInput = document.getElementById("price");
-            var yieldInput = document.getElementById("yield");
-            var epsInput = document.getElementById("eps");
-            var betaInput = document.getElementById("beta");
+            var dividendsPerMonth = parseFloat(document.getElementById("dividendsPerMonth").value);
+            var annualInterestRate = parseFloat(document.getElementById("interestRate").value) / 100; // Convert percentage to decimal
 
-            var ticker = tickerInput.value.toUpperCase();
-            var price = parseFloat(priceInput.value);
-            var yield = parseFloat(yieldInput.value);
-            var eps = epsInput.value !== "" ? parseFloat(epsInput.value) : undefined;
-            var beta = betaInput.value !== "" ? parseFloat(betaInput.value) : undefined;
+            var guaranteedDividendsPerYear = dividendsPerMonth * 12;
+            var confirmLoanAmount = guaranteedDividendsPerYear / annualInterestRate; // Assign value to confirmLoanAmount
 
-            var weeklyCheckbox = document.getElementById("weekly");
-            var monthlyCheckbox = document.getElementById("monthly");
-            var quarterlyCheckbox = document.getElementById("quarterly");
+            var loanAmountDisplay = document.getElementById("loanAmountDisplay");
+            loanAmountDisplay.innerHTML = "<h2>Loan Amount to Borrow on Margin</h2><p>The recommended loan amount for margin borrowing is: $" + confirmLoanAmount.toFixed(2) + "</p>";
 
-            var payout = "";
-            if (weeklyCheckbox.checked) {
-                payout = "Weekly";
-            } else if (monthlyCheckbox.checked) {
-                payout = "Monthly";
-            } else if (quarterlyCheckbox.checked) {
-                payout = "Quarterly";
-            }
+            var interestFormDisplay = document.getElementById("interestFormDisplay");
+            interestFormDisplay.innerHTML = '<form id="interestForm" onsubmit="calculateInterest(event);"> <div class="form-group"> <label for="confirmLoanAmount">Loan Amount ($):</label> <input type="number" id="confirmLoanAmount" step="0.01" required> </div> <button type="submit"> Calculate Interest </button> </form>';
 
-            var tickerRegex = /^[a-zA-Z/.:]+$/;
-            if (!tickerRegex.test(ticker)) {
-                alert("Invalid ticker input. Please enter letters only.");
-                return;
-            }
-
-            var dividendQuotient = (yield / price);
-            var peRatio = (eps <= 0) ? 0 : price / eps;
-
-            tickerInput.value = "";
-            priceInput.value = "";
-            yieldInput.value = "";
-            epsInput.value = "";
-            betaInput.value = "";
-            weeklyCheckbox.checked = false;
-            monthlyCheckbox.checked = false;
-            quarterlyCheckbox.checked = false;
-
-            if (stockDict.hasOwnProperty(ticker)) {
-                alert("This stock has already been added.");
-                return;
-            }
-
-            stockDict[ticker] = {
-                price: price,
-                yield: yield,
-                payout: payout,
-                eps: eps,
-                beta: beta,
-                dividend_quotient: dividendQuotient,
-                pe_ratio: peRatio
-            };
-
-            displayStockInfo(); // display the updated stock information
-        };
-
-        document.getElementById("sortCriteria").addEventListener("change", function(event) {
-            sortCriteria = event.target.value;
-            displayStockInfo();
-        });
-
-        function exportAsJSON() {
-            var jsonData = JSON.stringify(stockDict, null, 2);
-            var blob = new Blob([jsonData], { type: "application/json" });
-            var link = document.createElement("a");
-            link.href = URL.createObjectURL(blob);
-            link.download = "stockData.json";
-            link.click();
         }
 
-        function exportAsCSV() {
-            var csvContent = "data:text/csv;charset=utf-8,";
+        function calculateInterest(event) {
+            event.preventDefault();
 
-            // Header row
-            csvContent += Object.keys(stockDict[Object.keys(stockDict)[0]]).join(",") + "\n";
+            var confirmLoanAmount = parseFloat(document.getElementById("confirmLoanAmount").value); // Update confirmLoanAmount
 
-            // Data rows
-            Object.entries(stockDict).forEach(([_, stock]) => {
-                csvContent += Object.values(stock).join(",") + "\n";
-            });
+            var dividendsPerMonth = parseFloat(document.getElementById("dividendsPerMonth").value);
+            var annualInterestRate = parseFloat(document.getElementById("interestRate").value) / 100; // Convert percentage to decimal
 
-            var blob = new Blob([csvContent], { type: "text/csv" });
-            var link = document.createElement("a");
-            link.href = URL.createObjectURL(blob);
-            link.download = "stockData.csv";
-            link.click();
+            // Display yearly interest
+            var yearlyInterest = confirmLoanAmount * annualInterestRate;
+            var yearlyInterestDisplay = document.getElementById("yearlyInterestDisplay");
+            yearlyInterestDisplay.innerHTML = "<p>Yearly Interest: $" + yearlyInterest.toFixed(2) + "</p>";
+
+            // Display monthly interest
+            var monthlyInterest = yearlyInterest / 12;
+            var monthlyInterestDisplay = document.getElementById("monthlyInterestDisplay");
+            monthlyInterestDisplay.innerHTML = "<p>Monthly Interest: $" + monthlyInterest.toFixed(2) + "</p>";
+
+            // Display daily interest
+            var dailyInterest = yearlyInterest / 365;
+            var dailyInterestDisplay = document.getElementById("dailyInterestDisplay");
+            dailyInterestDisplay.innerHTML = "<p>Daily Interest: $" + dailyInterest.toFixed(2) + "</p>";
+
+            // Show the dividendForm
+            document.getElementById("dividendForm").style.display = "block";
         }
 
-        function confirmAndClearData() {
-            var confirmation = confirm("Are you sure you want to clear all table data?");
-            if (confirmation) {
-                stockDict = {}; // Clear the stock data
-                displayStockInfo(); // Update the table display
-            }
-        }
+        function calculateDividends(event) {
+            event.preventDefault();
 
+            var price = parseFloat(document.getElementById("price").value);
+            var apy = parseFloat(document.getElementById("apy").value);
+
+            // Calculate annual and monthly dividends
+            var confirmLoanAmount = parseFloat(document.getElementById("confirmLoanAmount").value);
+            var numShares = confirmLoanAmount / price;
+            var annualDividends = numShares * (apy / 100);
+            var monthlyDividends = annualDividends / 12;
+
+            // Display annual dividends
+            var annualDividendsDisplay = document.getElementById("annualDividendsDisplay");
+            annualDividendsDisplay.innerHTML = "<p> Annual Dividends: $" + annualDividends.toFixed(2) + "</p>";
+
+            // Display monthly dividends
+            var monthlyDividendsDisplay = document.getElementById("monthlyDividendsDisplay");
+            monthlyDividendsDisplay.innerHTML = "<p> Monthly Dividends: $" + monthlyDividends.toFixed(2) + "</p>";
+
+            // Calculate payback time
+            var totalDividends = monthlyDividends + parseFloat(document.getElementById("dividendsPerMonth").value);
+            var monthsToPayOff = confirmLoanAmount / totalDividends;
+            var yearsToPayOff = Math.floor(monthsToPayOff / 12);
+            var remainingMonths = Math.ceil(monthsToPayOff % 12);
+
+            // Display payback time
+            var paybackTimeDisplay = document.getElementById("paybackTimeDisplay");
+            paybackTimeDisplay.innerHTML = "<p>It will take approximately " + yearsToPayOff + " years and " + remainingMonths + " months to pay off the loan amount of $" + confirmLoanAmount + ", using your previous $" + parseFloat(document.getElementById("dividendsPerMonth").value) + " dividends per month, plus the new $" + monthlyDividends.toFixed(2) + " dividends per month. </p>";
+        }
     </script>
 </body>
 </html>
